@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; connect-src https://raw.githubusercontent.com https://api.github.com; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Redacted status</title>
+  <meta name="description" content="Live status of the Redacted app, the private relayer, Ozone and the public THORChain endpoints rpc.redacted.money and api.redacted.money.">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f3f7fa">
+  <meta property="og:title" content="Redacted status">
+  <meta property="og:description" content="Live status of the Redacted app, the private relayer, Ozone and the public THORChain endpoints.">
+  <meta property="og:url" content="https://status.redacted.gg/">
+  <link rel="canonical" href="https://status.redacted.gg/">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="fonts/figtree-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/jetbrains-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to the status</a>
+
+  <header class="nav-wrap">
+    <nav class="nav" aria-label="Redacted">
+      <a class="brand" href="https://redacted.gg/" aria-label="Redacted home">
+        <img src="favicon.svg" width="32" height="32" alt="">
+        <span class="brand-name">Redacted</span>
+      </a>
+      <span class="brand-page">Status</span>
+      <a class="nav-cta" href="https://redacted.gg/">
+        redacted.gg
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l5-5M4.5 3.5h4v4"/></svg>
+      </a>
+    </nav>
+  </header>
+
+  <main id="main" class="main">
+    <h1>Redacted status</h1>
+    <p class="lead">Live status of the Redacted app, the private relayer, Ozone and the public THORChain endpoints rpc.redacted.money and api.redacted.money.</p>
+    <p class="fresh" id="fresh"><span class="ping" aria-hidden="true"></span><span id="fresh-text">Loading the latest results</span></p>
+
+    <section class="banner tone-loading" id="banner" aria-labelledby="banner-title">
+      <span class="banner-icon" id="banner-icon" aria-hidden="true"></span>
+      <div class="banner-body">
+        <h2 class="banner-title" id="banner-title" aria-live="polite">Checking the services</h2>
+        <p class="banner-detail" id="banner-detail">Loading the latest results.</p>
+        <noscript><p class="banner-detail">This page needs JavaScript to load the live status.</p></noscript>
+        <ul class="banner-incidents" id="banner-incidents"></ul>
+      </div>
+    </section>
+
+    <section class="block" aria-labelledby="services-title">
+      <div class="block-head">
+        <h2 id="services-title">Services</h2>
+        <p class="block-note">Each bar is one day in UTC, with today on the right.</p>
+      </div>
+      <ul class="card services" id="services">
+        <li class="svc svc-empty">Loading the services.</li>
+      </ul>
+      <ul class="legend" aria-label="Bar colors">
+        <li><span class="swatch d-up" aria-hidden="true"></span>No downtime</li>
+        <li><span class="swatch d-warn" aria-hidden="true"></span>Down less than 30 minutes</li>
+        <li><span class="swatch d-down" aria-hidden="true"></span>Down 30 minutes or more</li>
+        <li><span class="swatch d-none" aria-hidden="true"></span>No data</li>
+      </ul>
+      <p class="sr-only" id="bar-help">Use the left and right arrow keys to read each day.</p>
+    </section>
+
+    <section class="block" aria-labelledby="incidents-title">
+      <div class="block-head">
+        <h2 id="incidents-title">Incidents</h2>
+        <p class="block-note">Open incidents first, then the last 90 days.</p>
+      </div>
+      <div class="card" id="incidents">
+        <p class="empty">Loading incidents.</p>
+      </div>
+      <p class="after-card" id="incidents-note"></p>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="foot-inner">
+      <a class="brand" href="https://redacted.gg/">
+        <img src="favicon.svg" width="32" height="32" alt="">
+        <span class="brand-name">Redacted</span>
+      </a>
+      <p class="foot-text" id="foot-text">Each service is checked about every five minutes from GitHub.</p>
+      <p class="foot-row"><span>© <span id="year">2026</span> Redacted</span><a href="https://redacted.gg/">redacted.gg</a></p>
+    </div>
+  </footer>
+
+  <div class="tip" id="tip" role="tooltip" hidden></div>
+  <p class="sr-only" id="live" aria-live="polite"></p>
+</body>
+</html>
