@@ -471,8 +471,8 @@
       text = 'Could not load the results, trying again every minute';
       cls = 'is-stale';
     } else {
-      text = 'Loading the latest results';
-      cls = 'is-idle';
+      text = ''; // the banner already says it is loading
+      cls = 'is-empty';
     }
     el.fresh.className = `fresh ${cls}`.trim();
     if (el.freshText.textContent !== text) el.freshText.textContent = text;

@@ -239,49 +239,15 @@ h1 {
 
 /* when the results were refreshed: a quiet line inside the overall banner */
 .fresh {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 12px 0 0;
+  margin: 6px 0 0;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.62);
+  color: rgba(255, 255, 255, 0.55);
 }
-
-.ping {
-  position: relative;
-  flex: none;
-  width: 8px;
-  height: 8px;
+.fresh.is-stale {
+  color: #f5c26b;
 }
-.ping::before,
-.ping::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: var(--cyan);
-}
-.ping::before {
-  opacity: 0.6;
-  animation: ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-.fresh.is-stale .ping::before,
-.fresh.is-stale .ping::after {
-  background: var(--amber);
-}
-.fresh.is-idle .ping::before {
-  animation: none;
-}
-.fresh.is-idle .ping::after {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-@keyframes ping {
-  75%,
-  100% {
-    transform: scale(2.4);
-    opacity: 0;
-  }
+.fresh.is-empty {
+  display: none;
 }
 
 /* ---------- overall banner: a dark panel like the ones on redacted.gg, glowing in the state's color */
@@ -810,9 +776,6 @@ h1 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ping::before {
-    animation: none;
-  }
   .nav-cta,
   .day {
     transition: none;
