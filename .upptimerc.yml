@@ -1,31 +1,64 @@
-# Change these first
-owner: upptime # Your GitHub organization or username, where this repository lives
-repo: upptime # The name of this repository
+# Redacted status: Redacted's public services, checked about every five minutes from GitHub.
+# The full history stays public in this repository. https://upptime.js.org/docs/configuration
+owner: redactedLabs
+repo: status
+
+# Who is assigned (and notified) when a check opens an incident issue.
+assignees:
+  - w36d
+
+skipDescriptionUpdate: true
+skipTopicsUpdate: true
 
 sites:
-  - name: Google
-    url: https://www.google.com
-  - name: Wikipedia
-    url: https://en.wikipedia.org
-  - name: Hacker News
-    url: https://news.ycombinator.com
-  - name: Secret Site
-    url: $SECRET_SITE
+  - name: Redacted app
+    slug: app
+    url: https://ruji.redacted.money
+    maxResponseTime: 5000
+  - name: Private relayer
+    slug: relayer
+    url: https://ruji.redacted.money/private-api/v2/relayer
+    __dangerous__body_down_if_text_missing: '"chain_id":"thorchain-1"'
+    maxResponseTime: 5000
+  # Ozone answers its health with "ok":true only while its lists, its chain follower and its snapshot are current.
+  - name: Ozone screening
+    slug: ozone
+    url: https://ozone.redacted.gg/api/health
+    __dangerous__body_down_if_text_missing: '"ok":true'
+    maxResponseTime: 8000
+  - name: Ozone website
+    slug: ozone-website
+    url: https://ozone.redacted.gg
+    maxResponseTime: 8000
+  # Down while the THORNode behind it is catching up: its answers would be behind the chain.
+  - name: THORChain RPC
+    slug: rpc
+    url: https://rpc.redacted.money/status
+    __dangerous__body_down_if_text_missing: '"catching_up":false'
+    maxResponseTime: 5000
+  - name: THORChain API
+    slug: api
+    url: https://api.redacted.money/thorchain/lastblock
+    maxResponseTime: 5000
+  - name: Website
+    slug: website
+    url: https://redacted.gg
+  - name: Docs
+    slug: docs
+    url: https://redacted.gg/docs/
 
 status-website:
-  # Add your custom domain name, or remove the `cname` line if you don't have a domain
-  # Uncomment the `baseUrl` line if you don't have a custom domain and add your repo name there
-  cname: demo.upptime.js.org
-  # baseUrl: /your-repo-name
-  logoUrl: https://raw.githubusercontent.com/upptime/upptime.js.org/master/static/img/icon.svg
-  name: Upptime
-  introTitle: "**Upptime** is the open-source uptime monitor and status page, powered entirely by GitHub."
-  introMessage: This is a sample status page which uses **real-time** data from our [GitHub repository](https://github.com/upptime/upptime). No server required — just GitHub Actions, Issues, and Pages. [**Get your own for free**](https://github.com/upptime/upptime)
+  cname: status.redacted.gg
+  logoUrl: https://redacted.gg/favicon.svg
+  favicon: https://redacted.gg/favicon.svg
+  name: Redacted Status
+  theme: dark
+  introTitle: "Redacted status"
+  introMessage: "Live status of the Redacted app, the private relayer, Ozone and the public THORChain endpoints rpc.redacted.money and api.redacted.money. Each service is checked about every five minutes from GitHub, and the full history is public in [this repository](https://github.com/redactedLabs/status)."
   navbar:
     - title: Status
       href: /
+    - title: Redacted
+      href: https://redacted.gg
     - title: GitHub
-      href: https://github.com/$OWNER/$REPO
-
-# Upptime also supports notifications, assigning issues, and more
-# See https://upptime.js.org/docs/configuration
+      href: https://github.com/redactedLabs/status
