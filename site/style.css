@@ -292,7 +292,7 @@ h1 {
   isolation: isolate;
   overflow: hidden;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 16px;
   margin-top: 28px;
   padding: 24px 20px;
