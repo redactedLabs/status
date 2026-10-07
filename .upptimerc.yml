@@ -15,8 +15,8 @@ sites:
     slug: app
     url: https://ruji.redacted.money
     maxResponseTime: 5000
-  - name: Private relayer
-    slug: relayer
+  - name: Redacted node
+    slug: node
     url: https://ruji.redacted.money/private-api/v2/relayer
     __dangerous__body_down_if_text_missing: '"chain_id":"thorchain-1"'
     maxResponseTime: 5000
@@ -54,7 +54,7 @@ status-website:
   name: Redacted Status
   theme: dark
   introTitle: "Redacted status"
-  introMessage: "Live status of the Redacted app, the private relayer, Ozone and the public THORChain endpoints rpc.redacted.money and api.redacted.money. Each service is checked about every five minutes from GitHub, and the full history is public in [this repository](https://github.com/redactedLabs/status)."
+  introMessage: "Live status of the Redacted app, the Redacted node, Ozone screening and the public THORChain RPC and API. Each service is checked about every five minutes from GitHub, and the full history is public in this repository."
   navbar:
     - title: Status
       href: /

@@ -24,7 +24,6 @@
   const DAY_MS = 24 * 60 * 60 * 1000;
   const LONG_MINUTES = 30; // a day with this much downtime or more shows red
   const CACHE_KEY = 'status-incidents-v1';
-  const HOST_LABELS = { docs: 'redacted.gg/docs' }; // where the host alone would say too little
   const STATUSES = ['up', 'degraded', 'down'];
 
   const $ = (id) => document.getElementById(id);
@@ -282,15 +281,6 @@
     return `${Math.max(0, 100 - (down / checked) * 100).toFixed(2)}%`;
   }
 
-  function hostLabel(row) {
-    if (HOST_LABELS[row.slug]) return HOST_LABELS[row.slug];
-    try {
-      return new URL(row.site.url).host;
-    } catch (e) {
-      return '';
-    }
-  }
-
   /* ---------- render */
 
   const PILLS = {
@@ -302,7 +292,6 @@
 
   function serviceHtml(row, list, now) {
     const [pillClass, pillText] = PILLS[row.status];
-    const host = hostLabel(row);
     const bad = list.filter((d) => d.minutes > 0);
     const total = bad.reduce((sum, d) => sum + d.minutes, 0);
     let label = `${row.name}, last 90 days, ${bad.length ? `down on ${plural(bad.length, 'day')} for ${duration(total)} in total` : 'no downtime'}`;
@@ -320,7 +309,7 @@
       .map(([k, v], n) => `<div><dt>${k}</dt><dd${n === 4 && measured ? ` title="Measured ${esc(stamp(measured))}"` : ''}>${esc(v || 'No data')}</dd></div>`)
       .join('');
     return (
-      `<div class="svc-head"><div class="svc-name"><h3>${esc(row.name)}</h3>${host ? `<span class="svc-host">${esc(host)}</span>` : ''}</div>` +
+      `<div class="svc-head"><div class="svc-name"><h3>${esc(row.name)}</h3></div>` +
       `<span class="pill ${pillClass}">${pillText}</span></div>` +
       `<div class="bar" tabindex="0" role="group" aria-label="${esc(label)}" aria-describedby="bar-help">` +
       list.map((d, n) => `<span class="day d-${d.kind}" data-i="${n}"></span>`).join('') +
