@@ -237,17 +237,14 @@ h1 {
   color: var(--ink-2);
 }
 
+/* when the results were refreshed: a quiet line inside the overall banner */
 .fresh {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 10px;
-  margin: 22px 0 0;
-  padding: 6px 14px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--card);
+  margin: 12px 0 0;
   font-size: 13px;
-  color: var(--ink-2);
+  color: rgba(255, 255, 255, 0.62);
 }
 
 .ping {
@@ -276,7 +273,7 @@ h1 {
   animation: none;
 }
 .fresh.is-idle .ping::after {
-  background: rgba(10, 17, 28, 0.2);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 @keyframes ping {
