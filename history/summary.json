@@ -18,21 +18,21 @@
     "dailyMinutesDown": {}
   },
   {
-    "name": "Private relayer",
+    "name": "Redacted node",
     "url": "https://ruji.redacted.money/private-api/v2/relayer",
     "icon": "https://icons.duckduckgo.com/ip3/ruji.redacted.money.ico",
-    "slug": "relayer",
+    "slug": "node",
     "status": "up",
     "uptime": "100.00%",
     "uptimeDay": "100.00%",
     "uptimeWeek": "100.00%",
     "uptimeMonth": "100.00%",
     "uptimeYear": "100.00%",
-    "time": 542,
-    "timeDay": 542,
-    "timeWeek": 542,
-    "timeMonth": 542,
-    "timeYear": 542,
+    "time": 522,
+    "timeDay": 522,
+    "timeWeek": 522,
+    "timeMonth": 522,
+    "timeYear": 522,
     "dailyMinutesDown": {}
   },
   {
