@@ -16,8 +16,8 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preload" href="fonts/figtree-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/jetbrains-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="style.css?v=4">
-  <script src="app.js?v=4" defer></script>
+  <link rel="stylesheet" href="style.css?v=5">
+  <script src="app.js?v=5" defer></script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to the status</a>
@@ -54,18 +54,32 @@
     <section class="block" aria-labelledby="services-title">
       <div class="block-head">
         <h2 id="services-title">Services</h2>
-        <p class="block-note">Each bar is one day in UTC, with today on the right.</p>
+        <div class="toggle" id="view-toggle" role="radiogroup" aria-label="Time range of the bars">
+          <input type="radio" name="view" id="view-24h" value="24h" checked>
+          <label for="view-24h">24 hours</label>
+          <input type="radio" name="view" id="view-90d" value="90d">
+          <label for="view-90d">90 days</label>
+        </div>
       </div>
+      <p class="block-note" id="services-note">Each segment is 15 minutes in UTC, ending now.</p>
       <ul class="card services" id="services">
         <li class="svc svc-empty">Loading the services.</li>
       </ul>
-      <ul class="legend" aria-label="Bar colors">
+      <ul class="legend" id="legend-24" aria-label="Segment colors and heights">
+        <li><span class="swatch sw-24 d-up" aria-hidden="true"></span>No downtime</li>
+        <li><span class="swatch sw-24 d-warn" aria-hidden="true"></span>Degraded</li>
+        <li><span class="swatch sw-24 d-down" aria-hidden="true"></span>Down</li>
+        <li><span class="swatch sw-24 d-none" aria-hidden="true"></span>No data</li>
+      </ul>
+      <ul class="legend" id="legend-90" aria-label="Bar colors" hidden>
         <li><span class="swatch d-up" aria-hidden="true"></span>No downtime</li>
         <li><span class="swatch d-warn" aria-hidden="true"></span>Down less than 30 minutes</li>
         <li><span class="swatch d-down" aria-hidden="true"></span>Down 30 minutes or more</li>
         <li><span class="swatch d-none" aria-hidden="true"></span>No data</li>
       </ul>
+      <p class="after-card" id="services-warn"></p>
       <p class="sr-only" id="bar-help">Use the left and right arrow keys to read each day.</p>
+      <p class="sr-only" id="bar-help-24">Use the left and right arrow keys to read each 15 minutes.</p>
     </section>
 
     <section class="block" aria-labelledby="incidents-title">

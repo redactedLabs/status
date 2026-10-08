@@ -2,8 +2,9 @@
  * status.redacted.gg
  *
  * Reads the public Upptime data of the status repository in the visitor's browser and redraws
- * every minute. No cookies, no trackers. The only thing it stores is a copy of the public incident
- * list for five minutes, so reloads stay within GitHub's limit of 60 API calls an hour per visitor.
+ * every minute. No cookies, no trackers. It stores two things in the browser: a copy of the public
+ * incident list for five minutes, so reloads stay within GitHub's limit of 60 API calls an hour per
+ * visitor, and the visitor's choice between the 24-hour and the 90-day view.
  */
 (() => {
   'use strict';
@@ -13,7 +14,8 @@
 
   const REPO_URL = `https://github.com/${REPO}`;
   const RAW = `https://raw.githubusercontent.com/${REPO}/master/history/`;
-  const ISSUES_API = `https://api.github.com/repos/${REPO}/issues?labels=status&state=all&per_page=30`;
+  const ISSUES_MAX = 30; // GitHub sends the newest first
+  const ISSUES_API = `https://api.github.com/repos/${REPO}/issues?labels=status&state=all&per_page=${ISSUES_MAX}`;
   const ISSUES_URL = `${REPO_URL}/issues?q=label%3Astatus`;
 
   const REFRESH_MS = 60 * 1000;
@@ -22,8 +24,14 @@
   const TIMEOUT_MS = 15 * 1000;
   const DAYS = 90;
   const DAY_MS = 24 * 60 * 60 * 1000;
+  const SLOT_MS = 15 * 60 * 1000;
+  const SLOTS = 96; // the 24-hour view: 96 segments of 15 minutes, the last one is the quarter hour running now
+  const TICK_MS = 6 * 60 * 60 * 1000; // a time label every six hours
+  const LISTED = 5; // outages named under a strip, newest first
   const LONG_MINUTES = 30; // a day with this much downtime or more shows red
   const CACHE_KEY = 'status-incidents-v1';
+  const VIEW_KEY = 'status-view-v1';
+  const VIEWS = ['24h', '90d'];
   const STATUSES = ['up', 'degraded', 'down'];
 
   const $ = (id) => document.getElementById(id);
@@ -36,6 +44,12 @@
     bannerDetail: $('banner-detail'),
     bannerIncidents: $('banner-incidents'),
     services: $('services'),
+    servicesNote: $('services-note'),
+    servicesWarn: $('services-warn'),
+    viewToggle: $('view-toggle'),
+    viewInputs: [...document.querySelectorAll('input[name="view"]')],
+    legend24: $('legend-24'),
+    legend90: $('legend-90'),
     incidents: $('incidents'),
     incidentsNote: $('incidents-note'),
     footText: $('foot-text'),
@@ -56,9 +70,11 @@
   // stale: a service changed its status since the list was last fetched
   const inc = { items: null, at: 0, next: 0, blockedUntil: 0, failed: false, stale: false };
   const dayLists = new Map(); // slug -> days of the last render, read by the tooltip
+  const slotLists = new Map(); // slug -> 24-hour segments of the last render, read by the tooltip
   const rendered = new Map(); // slug -> markup of the last render
   const last = {}; // markup of the last render per region
   let tipFor = null; // { bar, i }
+  let view = '24h'; // '24h' or '90d'
 
   /* ---------- formatting */
 
@@ -84,6 +100,46 @@
   const timeTag = (ms) => `<time datetime="${new Date(ms).toISOString()}">${esc(stamp(ms))}</time>`;
   const startOfUtcDay = (ms) => ms - (ms % DAY_MS);
   const dayKey = (ms) => new Date(ms).toISOString().slice(0, 10);
+
+  // clock times for the 24-hour view, in UTC or in the visitor's own time zone
+  const DASH = '\u2013';
+  function zoned(ms, local) {
+    const d = new Date(ms);
+    return local
+      ? { day: `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`, date: `${d.getDate()} ${MONTHS[d.getMonth()]}`, time: `${pad(d.getHours())}:${pad(d.getMinutes())}` }
+      : { day: dayKey(ms), date: `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`, time: `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}` };
+  }
+  // "13:05", with the date in front ("7 Oct 13:05") when that is not the day of `ref`
+  function clockAt(ms, ref, local) {
+    const t = zoned(ms, local);
+    return t.day === zoned(ref, local).day ? t.time : `${t.date} ${t.time}`;
+  }
+  // "12:50-13:05" with an en dash; one time when both ends fall in the same minute; dates where the day changes
+  function spanAt(from, to, ref, local) {
+    const a = zoned(from, local);
+    const b = zoned(to, local);
+    if (a.day !== b.day) return `${clockAt(from, ref, local)} ${DASH} ${b.date} ${b.time}`;
+    return a.time === b.time ? clockAt(from, ref, local) : `${clockAt(from, ref, local)}${DASH}${b.time}`;
+  }
+  const zoneFmt = new Intl.DateTimeFormat('en-US', { timeZoneName: 'short' });
+  const zoneOf = (ms) => (zoneFmt.formatToParts(ms).find((p) => p.type === 'timeZoneName') || { value: 'local time' }).value;
+  // the same period on the visitor's own clock ("Local 14:50-15:05 GMT+2" with an en dash), or '' when that is UTC anyway
+  function localLine(from, to, ref, open) {
+    if (new Date(from).getTimezoneOffset() === 0 && new Date(to).getTimezoneOffset() === 0) return '';
+    const a = zoneOf(from);
+    if (open) return `Local since ${clockAt(from, ref, true)} ${a}`;
+    const b = zoneOf(to);
+    return a === b ? `Local ${spanAt(from, to, ref, true)} ${a}` : `Local ${clockAt(from, ref, true)} ${a} ${DASH} ${clockAt(to, ref, true)} ${b}`;
+  }
+  // "15 min", "1 h 5 min", "under 1 min"
+  function shortDuration(ms) {
+    if (ms < 60000) return 'under 1 min';
+    const min = Math.round(ms / 60000);
+    const d = Math.floor(min / 1440);
+    const h = Math.floor((min % 1440) / 60);
+    const m = min % 60;
+    return [d && `${d} d`, h && `${h} h`, m && `${m} min`].filter(Boolean).join(' ');
+  }
 
   function duration(minutes) {
     const min = Math.round(minutes);
@@ -190,6 +246,24 @@
     }
   }
 
+  function readView() {
+    try {
+      const v = localStorage.getItem(VIEW_KEY);
+      if (VIEWS.includes(v)) return v;
+    } catch (e) {
+      // storage blocked or unreadable
+    }
+    return '24h';
+  }
+
+  function writeView(v) {
+    try {
+      localStorage.setItem(VIEW_KEY, v);
+    } catch (e) {
+      // storage blocked or full
+    }
+  }
+
   // GitHub allows 60 unauthenticated API calls an hour per IP, so the list is asked for at most
   // every five minutes, or sooner (30 seconds apart at most) after a service changed its status.
   async function loadIncidents() {
@@ -281,6 +355,63 @@
     return `${Math.max(0, 100 - (down / checked) * 100).toFixed(2)}%`;
   }
 
+  // The down and degraded periods of one service, oldest first. An incident issue runs from its creation
+  // to its closing, or to now while it is open. Periods of one kind that overlap count as one.
+  function outages(row, now) {
+    const found = [];
+    for (const i of inc.items || []) {
+      if (!i.labels.includes(row.slug)) continue;
+      const to = i.open ? now : i.closed || i.created;
+      found.push({ from: i.created, to: Math.max(to, i.created), kind: isDegraded(i) ? 'degraded' : 'down', open: i.open });
+    }
+    // the issue list can be a little behind the live status, so what is down right now is always shown
+    if ((row.status === 'down' || row.status === 'degraded') && !found.some((o) => o.open)) {
+      found.push({ from: Math.min(now, Date.parse(row.live.lastUpdated) || now), to: now, kind: row.status, open: true });
+    }
+    const out = [];
+    for (const kind of ['down', 'degraded']) {
+      let cur = null;
+      for (const o of found.filter((f) => f.kind === kind).sort((a, b) => a.from - b.from)) {
+        if (cur && o.from <= cur.to) {
+          cur.to = Math.max(cur.to, o.to);
+          cur.open = cur.open || o.open;
+        } else {
+          cur = { ...o };
+          out.push(cur);
+        }
+      }
+    }
+    return out.sort((a, b) => a.from - b.from);
+  }
+
+  const slotsStart = (now) => Math.floor(now / SLOT_MS) * SLOT_MS - (SLOTS - 1) * SLOT_MS;
+
+  // 96 segments of 15 minutes, oldest first, on the quarter hours of UTC. The last one is the quarter hour
+  // running now. A segment is down or degraded when a period of that service overlaps it.
+  function slotList(row, now) {
+    const first = slotsStart(now);
+    const start = state.starts[row.slug] || earliestStart();
+    const outs = outages(row, now).filter((o) => o.to > first && o.from < first + SLOTS * SLOT_MS);
+    const slots = [];
+    for (let n = 0; n < SLOTS; n++) {
+      const t = first + n * SLOT_MS;
+      const hits = outs.filter((o) => o.from < t + SLOT_MS && o.to > t);
+      let kind = 'up';
+      let why = ''; // what "none" means: no checks yet, or no incident list to read
+      if (hits.length) {
+        kind = hits.some((o) => o.kind === 'down') ? 'down' : 'warn';
+      } else if (!start || t + SLOT_MS <= start) {
+        kind = 'none';
+        why = 'start';
+      } else if (!inc.items) {
+        kind = 'none';
+        why = 'list';
+      }
+      slots.push({ t, kind, why, hits, current: n === SLOTS - 1 });
+    }
+    return { first, start, outs, slots, now };
+  }
+
   /* ---------- render */
 
   const PILLS = {
@@ -290,13 +421,52 @@
     unknown: ['pill-unknown', 'Unknown'],
   };
 
-  function serviceHtml(row, list, now) {
-    const [pillClass, pillText] = PILLS[row.status];
+  function chart90Html(row, list) {
     const bad = list.filter((d) => d.minutes > 0);
     const total = bad.reduce((sum, d) => sum + d.minutes, 0);
     let label = `${row.name}, last 90 days, ${bad.length ? `down on ${plural(bad.length, 'day')} for ${duration(total)} in total` : 'no downtime'}`;
     const start = state.starts[row.slug];
     if (start && start > list[0].t) label += `, checked since ${fmtDay(start)}`;
+    return (
+      `<div class="bar" tabindex="0" role="group" aria-label="${esc(label)}" aria-describedby="bar-help">` +
+      list.map((d, n) => `<span class="day d-${d.kind}" data-i="${n}"></span>`).join('') +
+      '</div><div class="axis" aria-hidden="true"><span class="ax-90">90 days ago</span><span class="ax-60">60 days ago</span>' +
+      '<span class="ax-30">30 days ago</span><span>Today</span></div>'
+    );
+  }
+
+  const KINDS = { down: 'Down', degraded: 'Degraded' };
+  // "Down 12:50-13:05 UTC" with an en dash, or "Down since 12:50 UTC" while it lasts
+  const whenText = (o, now) => `${KINDS[o.kind]} ${o.open ? `since ${clockAt(o.from, now)}` : spanAt(o.from, o.to, now)} UTC`;
+
+  // The strip, its time labels and, in plain text under it, when the service was down.
+  function chart24Html(row, set, now) {
+    const newest = set.outs.slice().reverse();
+    const named = newest.slice(0, LISTED);
+    const more = newest.length - named.length;
+    let label = `${row.name}, last 24 hours, `;
+    if (named.length) label += named.map((o) => whenText(o, now).replace(/^./, (c) => c.toLowerCase())).join(', ') + (more ? `, and ${more} earlier` : '');
+    else label += inc.items ? 'no downtime' : 'incident times not available';
+    if (set.start && set.start > set.first) label += `, checked since ${clockAt(set.start, now)} UTC`;
+    let ticks = '';
+    set.slots.forEach((s, k) => {
+      if (s.t % TICK_MS) return;
+      // a label at the very edge of the strip starts or ends at its tick, so it stays inside the card
+      const edge = k < 4 ? ' t-l' : k > SLOTS - 4 ? ' t-r' : '';
+      ticks += `<span class="tick${edge}" data-k="${k}">${pad(new Date(s.t).getUTCHours())}:00<span class="u"> UTC</span></span>`;
+    });
+    const items = named.map((o) => `<span class="when-item">${esc(whenText(o, now))}</span>`);
+    if (more) items.push(`<span class="when-item">+${more} earlier</span>`);
+    return (
+      `<div class="bar bar-24" tabindex="0" role="group" aria-label="${esc(label)}" aria-describedby="bar-help-24">` +
+      set.slots.map((s) => `<span class="seg d-${s.kind}"></span>`).join('') +
+      `</div><div class="axis axis-24" aria-hidden="true">${ticks}</div>` +
+      (items.length ? `<p class="when">${items.join(' ')}</p>` : '')
+    );
+  }
+
+  function serviceHtml(row, list, set, now) {
+    const [pillClass, pillText] = PILLS[row.status];
     const ms = Number(row.live.responseTime || row.site.time);
     const measured = Date.parse(row.live.lastUpdated);
     const stats = [
@@ -311,10 +481,7 @@
     return (
       `<div class="svc-head"><div class="svc-name"><h3>${esc(row.name)}</h3></div>` +
       `<span class="pill ${pillClass}">${pillText}</span></div>` +
-      `<div class="bar" tabindex="0" role="group" aria-label="${esc(label)}" aria-describedby="bar-help">` +
-      list.map((d, n) => `<span class="day d-${d.kind}" data-i="${n}"></span>`).join('') +
-      '</div><div class="axis" aria-hidden="true"><span class="ax-90">90 days ago</span><span class="ax-60">60 days ago</span>' +
-      '<span class="ax-30">30 days ago</span><span>Today</span></div>' +
+      (set ? chart24Html(row, set, now) : chart90Html(row, list)) +
       `<dl class="stats">${stats}</dl>`
     );
   }
@@ -327,9 +494,14 @@
     const kids = new Map([...el.services.children].map((li) => [li.dataset.slug || '', li]));
     let prev = null;
     for (const row of list) {
-      const days = dayList(row, now);
+      const days = dayList(row, now); // the 90-day figure needs the days in both views
       dayLists.set(row.slug, days);
-      const html = serviceHtml(row, days, now);
+      let set = null;
+      if (view === '24h') {
+        set = slotList(row, now);
+        slotLists.set(row.slug, set);
+      }
+      const html = serviceHtml(row, days, set, now);
       let li = kids.get(row.slug);
       kids.delete(row.slug);
       if (!li) {
@@ -342,6 +514,8 @@
         const hadFocus = li.contains(document.activeElement);
         const tipDay = tipFor && li.contains(tipFor.bar) ? tipFor.i : null;
         li.innerHTML = html;
+        // the CSP forbids style attributes in the markup, setting a property from script is allowed
+        li.querySelectorAll('.tick').forEach((t) => t.style.setProperty('--k', t.dataset.k));
         rendered.set(row.slug, html);
         const bar = li.querySelector('.bar');
         if (hadFocus) bar.focus({ preventScroll: true });
@@ -459,6 +633,21 @@
     if (last.foot !== html) el.footText.innerHTML = last.foot = html;
   }
 
+  // Under the 24-hour strips: say so when the incident times they are drawn from may be behind or short.
+  function renderWarn(now) {
+    let html = '';
+    if (view === '24h' && state.sites) {
+      const github = `The full list is on <a href="${ISSUES_URL}">GitHub</a>.`;
+      const short = inc.items && inc.items.length >= ISSUES_MAX && Math.min(...inc.items.map((i) => i.created)) > slotsStart(now);
+      if (inc.failed) {
+        html = `${inc.items ? 'The incident list could not be refreshed just now, so the newest outages may be missing here.' : 'The incident list could not be loaded just now, so earlier outages are not shown here.'} ${github}`;
+      } else if (short) {
+        html = `Only the newest ${ISSUES_MAX} incidents are loaded, so older outages in these 24 hours may be missing. ${github}`;
+      }
+    }
+    if (last.warn !== html) el.servicesWarn.innerHTML = last.warn = html;
+  }
+
   function renderFresh() {
     let text;
     let cls = '';
@@ -482,6 +671,7 @@
     const now = Date.now();
     const list = rows();
     renderServices(list, now);
+    renderWarn(now);
     renderBanner(list, openIncidents());
     renderIncidents(now);
     renderFoot(list);
@@ -493,6 +683,8 @@
   const mqWide = matchMedia('(min-width: 720px)');
   const mqMid = matchMedia('(min-width: 480px)');
   const firstVisible = () => (mqWide.matches ? 0 : mqMid.matches ? 30 : 60); // matches the CSS
+  // the first and last segment that can be read on a bar: all 96 of the 24-hour strip, the days the CSS shows
+  const cellsOf = (bar) => (bar.classList.contains('bar-24') ? [0, SLOTS - 1] : [firstVisible(), DAYS - 1]);
 
   function dayInfo(slug, n) {
     const d = (dayLists.get(slug) || [])[n];
@@ -505,6 +697,37 @@
       text = `${hits.length && hits.every(isDegraded) ? 'Degraded' : 'Down'} for ${duration(d.minutes)}`;
     }
     return { date: fmtDay(d.t), text };
+  }
+
+  // The quarter hour in UTC and on the visitor's clock, then what happened in it, with the exact times
+  // and how long each outage lasted.
+  function slotInfo(slug, n) {
+    const set = slotLists.get(slug);
+    const s = set && set.slots[n];
+    if (!s) return null;
+    const { now } = set;
+    const end = s.t + SLOT_MS;
+    const d = new Date(s.t);
+    const lines = [];
+    const say = [];
+    const add = (text, local) => {
+      lines.push({ t: text, gap: true });
+      say.push(text);
+      if (local) lines.push({ t: local, sub: true });
+    };
+    const mine = localLine(s.t, end, now, false);
+    if (mine) lines.push({ t: mine, sub: true });
+    if (s.hits.length) {
+      for (const o of s.hits) {
+        const length = o.open ? `${shortDuration(now - o.from)} so far` : shortDuration(o.to - o.from);
+        add(`${whenText(o, now)} (${length})`, localLine(o.from, o.to, now, o.open));
+      }
+    } else if (s.kind === 'none') {
+      add(s.why === 'list' ? 'Incident times are not available right now' : `No data${set.start ? `, checks started ${clockAt(set.start, now)} UTC` : ''}`);
+    } else {
+      add(s.current ? 'No downtime so far' : 'No downtime');
+    }
+    return { date: `${WEEKDAYS[d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}, ${zoned(s.t).time}${DASH}${zoned(end).time} UTC`, lines, text: say.join('; ') };
   }
 
   function clearMark(bar) {
@@ -537,7 +760,8 @@
 
   function showTip(bar, n, announce) {
     const li = bar.closest('.svc');
-    const info = li && dayInfo(li.dataset.slug, n);
+    const read = bar.classList.contains('bar-24') ? slotInfo : dayInfo;
+    const info = li && read(li.dataset.slug, n);
     const day = bar.children[n];
     if (!info || !day) {
       hideTip();
@@ -548,7 +772,11 @@
     bar.classList.add('has-on');
     day.classList.add('is-on');
     bar.dataset.active = String(n);
-    el.tip.innerHTML = `<span class="tip-date">${esc(info.date)}</span><span class="tip-text">${esc(info.text)}</span>`;
+    el.tip.innerHTML =
+      `<span class="tip-date">${esc(info.date)}</span>` +
+      (info.lines || [{ t: info.text }])
+        .map((l) => `<span class="tip-text${l.gap ? ' tip-gap' : ''}${l.sub ? ' tip-sub' : ''}">${esc(l.t).replace(/\([^)]*\)/g, '<span class="tip-nb">$&</span>')}</span>`)
+        .join('');
     el.tip.hidden = false;
     placeTip(day);
     tipFor = { bar, i: n };
@@ -556,10 +784,10 @@
   }
 
   function dayAt(bar, clientX) {
-    const from = firstVisible();
+    const [from, to] = cellsOf(bar);
     const r = bar.getBoundingClientRect();
-    const n = from + Math.floor(((clientX - r.left) / r.width) * (DAYS - from));
-    return Math.max(from, Math.min(DAYS - 1, n));
+    const n = from + Math.floor(((clientX - r.left) / r.width) * (to - from + 1));
+    return Math.max(from, Math.min(to, n));
   }
 
   const barOf = (node) => (node && node.closest ? node.closest('.bar') : null);
@@ -586,13 +814,13 @@
   el.services.addEventListener('keydown', (e) => {
     const bar = e.target;
     if (!bar.classList || !bar.classList.contains('bar')) return;
-    const from = firstVisible();
-    const cur = tipFor && tipFor.bar === bar ? tipFor.i : DAYS - 1;
+    const [from, to] = cellsOf(bar);
+    const cur = tipFor && tipFor.bar === bar ? tipFor.i : to;
     let n;
     if (e.key === 'ArrowLeft') n = Math.max(from, cur - 1);
-    else if (e.key === 'ArrowRight') n = Math.min(DAYS - 1, cur + 1);
+    else if (e.key === 'ArrowRight') n = Math.min(to, cur + 1);
     else if (e.key === 'Home') n = from;
-    else if (e.key === 'End') n = DAYS - 1;
+    else if (e.key === 'End') n = to;
     else if (e.key === 'Escape') return hideTip();
     else return;
     e.preventDefault();
@@ -602,8 +830,9 @@
   el.services.addEventListener('focusin', (e) => {
     const bar = e.target;
     if (!bar.classList || !bar.classList.contains('bar') || (tipFor && tipFor.bar === bar)) return;
+    const [from, to] = cellsOf(bar);
     const n = Number(bar.dataset.active);
-    showTip(bar, Number.isInteger(n) && n >= firstVisible() ? n : DAYS - 1, false);
+    showTip(bar, Number.isInteger(n) && n >= from && n <= to ? n : to, false);
   });
 
   el.services.addEventListener('focusout', (e) => {
@@ -611,6 +840,30 @@
   });
 
   window.addEventListener('resize', hideTip);
+
+  /* ---------- view: the last 24 hours or the last 90 days */
+
+  const NOTES = { '24h': 'Each segment is 15 minutes in UTC, ending now.', '90d': 'Each bar is one day in UTC, with today on the right.' };
+  const SAYS = { '24h': 'Showing the last 24 hours', '90d': 'Showing the last 90 days' };
+
+  function setView(next) {
+    view = next;
+    el.viewInputs.forEach((input) => {
+      input.checked = input.value === next;
+    });
+    el.servicesNote.textContent = NOTES[next];
+    el.legend24.hidden = next !== '24h';
+    el.legend90.hidden = next !== '90d';
+    hideTip();
+    render();
+  }
+
+  el.viewToggle.addEventListener('change', (e) => {
+    if (!VIEWS.includes(e.target.value)) return;
+    writeView(e.target.value);
+    setView(e.target.value);
+    el.live.textContent = SAYS[e.target.value];
+  });
 
   /* ---------- refresh loop: every minute while the page is visible */
 
@@ -666,6 +919,6 @@
   el.year.textContent = String(new Date().getUTCFullYear());
   const cached = readCache();
   if (cached) Object.assign(inc, { items: cached.items, at: cached.at, next: cached.at + INCIDENTS_TTL_MS });
-  render();
+  setView(readView());
   refresh();
 })();

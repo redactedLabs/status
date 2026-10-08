@@ -408,6 +408,53 @@ h1 {
   font-size: 14px;
   color: var(--ink-2);
 }
+.block-head + .block-note {
+  margin-top: 6px;
+}
+
+/* the 24 hours / 90 days switch: two radio buttons that look like one segmented control */
+.toggle {
+  position: relative;
+  display: inline-flex;
+  align-self: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(10, 17, 28, 0.05);
+}
+.toggle input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.toggle label {
+  padding: 7px 14px;
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--ink-2);
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: background 0.2s, color 0.2s;
+}
+.toggle label:hover {
+  color: var(--ink);
+}
+.toggle input:checked + label {
+  background: var(--ink);
+  color: #fff;
+}
+.toggle input:focus-visible + label {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  border-radius: 9px;
+}
 
 .card {
   margin: 20px 0 0;
@@ -511,10 +558,12 @@ h1 {
   background: var(--c);
   transition: opacity 0.15s;
 }
-.bar.has-on .day {
+.bar.has-on .day,
+.bar.has-on .seg {
   opacity: 0.45;
 }
-.bar.has-on .day.is-on {
+.bar.has-on .day.is-on,
+.bar.has-on .seg.is-on {
   opacity: 1;
 }
 
@@ -567,6 +616,112 @@ h1 {
   }
 }
 
+/* ---------- last 24 hours: 96 segments of 15 minutes. The height says the state too, so it reads without color. */
+
+.bar-24,
+.axis-24 {
+  --g: 1px; /* the gap between segments, which the time labels need too */
+}
+.bar-24 {
+  align-items: flex-end;
+  gap: var(--g);
+}
+.seg {
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: 1px;
+  background: var(--c);
+  transition: opacity 0.15s;
+}
+.seg.d-up {
+  height: 60%;
+}
+.seg.d-warn {
+  height: 80%;
+}
+.seg.d-down {
+  height: 100%;
+}
+.seg.d-none {
+  height: 28%;
+}
+/* degraded is also hatched */
+.seg.d-warn,
+.sw-24.d-warn {
+  background-image: repeating-linear-gradient(135deg, rgba(10, 17, 28, 0.42) 0 1px, transparent 1px 3px);
+}
+@media (min-width: 720px) {
+  .bar-24,
+  .axis-24 {
+    --g: 2px;
+  }
+  .seg {
+    border-radius: 2px;
+  }
+}
+
+/* a label every six hours, placed on its quarter hour by app.js (--k is the segment it starts at) */
+.axis.axis-24 {
+  position: relative;
+  display: block;
+  height: 18px;
+}
+.axis-24 .tick {
+  position: absolute;
+  top: 0;
+  left: calc(var(--k, 0) / 96 * (100% + var(--g)) - var(--g) / 2); /* the middle of the gap before segment k */
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+.axis-24 .tick::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 1px;
+  height: 5px;
+  background: currentColor;
+  opacity: 0.55;
+}
+/* a label at the very edge of the strip starts or ends at its tick */
+.axis-24 .tick.t-l {
+  transform: none;
+}
+.axis-24 .tick.t-l::before {
+  left: 0;
+}
+.axis-24 .tick.t-r {
+  transform: translateX(-100%);
+}
+.axis-24 .tick.t-r::before {
+  left: auto;
+  right: 0;
+}
+/* "UTC" after the hour when the strip is wide enough for it */
+.axis-24 .u {
+  display: none;
+}
+@media (min-width: 560px) {
+  .axis-24 .u {
+    display: inline;
+  }
+}
+
+/* when it was down, as plain text under the strip; each outage stays in one piece when the line wraps */
+.when {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 18px;
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.when-item {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .stats {
   display: flex;
   flex-wrap: wrap;
@@ -612,6 +767,22 @@ h1 {
   border-radius: 2px;
   background: var(--c);
 }
+.legend[hidden] {
+  display: none;
+}
+/* the swatches of the 24-hour strip are as tall as its segments: short is fine, tall is down */
+.sw-24.d-up {
+  height: 9px;
+}
+.sw-24.d-warn {
+  height: 12px;
+}
+.sw-24.d-down {
+  height: 16px;
+}
+.sw-24.d-none {
+  height: 5px;
+}
 
 /* ---------- day tooltip */
 
@@ -620,7 +791,7 @@ h1 {
   z-index: 60;
   top: 0;
   left: 0;
-  max-width: 240px;
+  max-width: 280px;
   padding: 9px 12px;
   border-radius: 12px;
   background: var(--night-2);
@@ -655,6 +826,15 @@ h1 {
 .tip-text {
   display: block;
   color: rgba(255, 255, 255, 0.75);
+}
+.tip-sub {
+  color: rgba(255, 255, 255, 0.55);
+}
+.tip-gap {
+  margin-top: 5px;
+}
+.tip-nb {
+  white-space: nowrap; /* a duration such as "(15 min)" is not split over two lines */
 }
 
 /* ---------- incidents */
@@ -777,7 +957,9 @@ h1 {
 
 @media (prefers-reduced-motion: reduce) {
   .nav-cta,
-  .day {
+  .day,
+  .seg,
+  .toggle label {
     transition: none;
   }
 }
