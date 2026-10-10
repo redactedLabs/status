@@ -5,21 +5,17 @@
     "icon": "https://icons.duckduckgo.com/ip3/ruji.redacted.money.ico",
     "slug": "app",
     "status": "up",
-    "uptime": "98.37%",
-    "uptimeDay": "97.84%",
-    "uptimeWeek": "98.37%",
-    "uptimeMonth": "98.37%",
-    "uptimeYear": "98.37%",
+    "uptime": "100.00%",
+    "uptimeDay": "100.00%",
+    "uptimeWeek": "100.00%",
+    "uptimeMonth": "100.00%",
+    "uptimeYear": "100.00%",
     "time": 616,
     "timeDay": 553,
     "timeWeek": 616,
     "timeMonth": 616,
     "timeYear": 616,
-    "dailyMinutesDown": {
-      "2026-10-08": 15,
-      "2026-10-09": 21,
-      "2026-10-10": 31
-    }
+    "dailyMinutesDown": {}
   },
   {
     "name": "Redacted node",
@@ -27,21 +23,17 @@
     "icon": "https://icons.duckduckgo.com/ip3/ruji.redacted.money.ico",
     "slug": "node",
     "status": "up",
-    "uptime": "98.83%",
-    "uptimeDay": "98.52%",
-    "uptimeWeek": "98.83%",
-    "uptimeMonth": "98.83%",
-    "uptimeYear": "98.83%",
+    "uptime": "100.00%",
+    "uptimeDay": "100.00%",
+    "uptimeWeek": "100.00%",
+    "uptimeMonth": "100.00%",
+    "uptimeYear": "100.00%",
     "time": 505,
     "timeDay": 335,
     "timeWeek": 505,
     "timeMonth": 505,
     "timeYear": 505,
-    "dailyMinutesDown": {
-      "2026-10-08": 10,
-      "2026-10-09": 16,
-      "2026-10-10": 21
-    }
+    "dailyMinutesDown": {}
   },
   {
     "name": "Ozone screening",
@@ -85,21 +77,17 @@
     "icon": "https://icons.duckduckgo.com/ip3/rpc.redacted.money.ico",
     "slug": "rpc",
     "status": "up",
-    "uptime": "99.31%",
-    "uptimeDay": "99.19%",
-    "uptimeWeek": "99.31%",
-    "uptimeMonth": "99.31%",
-    "uptimeYear": "99.31%",
+    "uptime": "100.00%",
+    "uptimeDay": "100.00%",
+    "uptimeWeek": "100.00%",
+    "uptimeMonth": "100.00%",
+    "uptimeYear": "100.00%",
     "time": 454,
     "timeDay": 451,
     "timeWeek": 454,
     "timeMonth": 454,
     "timeYear": 454,
-    "dailyMinutesDown": {
-      "2026-10-08": 5,
-      "2026-10-09": 11,
-      "2026-10-10": 11
-    }
+    "dailyMinutesDown": {}
   },
   {
     "name": "THORChain API",
@@ -107,21 +95,17 @@
     "icon": "https://icons.duckduckgo.com/ip3/api.redacted.money.ico",
     "slug": "api",
     "status": "up",
-    "uptime": "99.78%",
-    "uptimeDay": "99.86%",
-    "uptimeWeek": "99.78%",
-    "uptimeMonth": "99.78%",
-    "uptimeYear": "99.78%",
+    "uptime": "100.00%",
+    "uptimeDay": "100.00%",
+    "uptimeWeek": "100.00%",
+    "uptimeMonth": "100.00%",
+    "uptimeYear": "100.00%",
     "time": 569,
     "timeDay": 472,
     "timeWeek": 569,
     "timeMonth": 569,
     "timeYear": 569,
-    "dailyMinutesDown": {
-      "2026-10-08": 1,
-      "2026-10-09": 6,
-      "2026-10-10": 2
-    }
+    "dailyMinutesDown": {}
   },
   {
     "name": "Website",
