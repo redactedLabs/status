@@ -14,10 +14,14 @@ sites:
   - name: Redacted app
     slug: app
     url: https://ruji.redacted.money
+    type: globalping
+    location: Europe
     maxResponseTime: 5000
   - name: Redacted node
     slug: node
     url: https://ruji.redacted.money/private-api/v2/relayer
+    type: globalping
+    location: Europe
     __dangerous__body_down_if_text_missing: '"chain_id":"thorchain-1"'
     maxResponseTime: 5000
   # Ozone answers its health with "ok":true only while its lists, its chain follower and its snapshot are current.
@@ -34,11 +38,15 @@ sites:
   - name: THORChain RPC
     slug: rpc
     url: https://rpc.redacted.money/status
+    type: globalping
+    location: Europe
     __dangerous__body_down_if_text_missing: '"catching_up":false'
     maxResponseTime: 5000
   - name: THORChain API
     slug: api
     url: https://api.redacted.money/thorchain/lastblock
+    type: globalping
+    location: Europe
     maxResponseTime: 5000
   - name: Website
     slug: website
