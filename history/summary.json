@@ -58,19 +58,19 @@
     "url": "https://ozone.redacted.gg",
     "icon": "https://icons.duckduckgo.com/ip3/ozone.redacted.gg.ico",
     "slug": "ozone-website",
-    "status": "degraded",
-    "uptime": "99.98%",
-    "uptimeDay": "99.88%",
-    "uptimeWeek": "99.98%",
-    "uptimeMonth": "99.98%",
-    "uptimeYear": "99.98%",
-    "time": 3977,
-    "timeDay": 10814,
-    "timeWeek": 3977,
-    "timeMonth": 3977,
-    "timeYear": 3977,
+    "status": "up",
+    "uptime": "99.45%",
+    "uptimeDay": "96.62%",
+    "uptimeWeek": "99.45%",
+    "uptimeMonth": "99.45%",
+    "uptimeYear": "99.45%",
+    "time": 3823,
+    "timeDay": 7970,
+    "timeWeek": 3823,
+    "timeMonth": 3823,
+    "timeYear": 3823,
     "dailyMinutesDown": {
-      "2026-10-14": 2
+      "2026-10-14": 49
     }
   },
   {
