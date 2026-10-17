@@ -1,7 +1,7 @@
 url: https://ozone.redacted.gg/api/health
-status: up
-code: 200
-responseTime: 997
-lastUpdated: 2026-10-16T23:10:04.572Z
+status: down
+code: 503
+responseTime: 573
+lastUpdated: 2026-10-17T06:44:01.010Z
 startTime: 2026-10-07T21:36:39.944Z
 generator: Upptime <https://github.com/upptime/upptime>
