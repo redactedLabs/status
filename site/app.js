@@ -17,6 +17,10 @@
   const ISSUES_MAX = 30; // GitHub sends the newest first
   const ISSUES_API = `https://api.github.com/repos/${REPO}/issues?labels=status&state=all&per_page=${ISSUES_MAX}`;
   const ISSUES_URL = `${REPO_URL}/issues?q=label%3Astatus`;
+  // The network as redacted.gg reads it from the chain (nodes with their own health answer, churn, state).
+  const NETWORK_API = 'https://redacted.gg/api/network/';
+  const NETWORK_URL = 'https://redacted.gg/network/';
+  const BLOCK_SECONDS = 6;
 
   const REFRESH_MS = 60 * 1000;
   const INCIDENTS_TTL_MS = 5 * 60 * 1000;
@@ -56,6 +60,7 @@
     year: $('year'),
     tip: $('tip'),
     live: $('live'),
+    network: $('network'),
   };
 
   const state = {
@@ -161,6 +166,92 @@
     const h = Math.round(m / 60);
     if (h < 48) return `${plural(h, 'hour')} ago`;
     return `${plural(Math.round(h / 24), 'day')} ago`;
+  }
+
+  /* ---------- network: nodes, churn, state */
+
+  const net = { data: null, failed: false };
+
+  async function loadNetwork() {
+    try {
+      const d = await get(NETWORK_API);
+      if (d && d.version === 1 && (!net.data || d.height >= net.data.height)) net.data = d;
+      net.failed = false;
+    } catch (e) {
+      net.failed = true;
+    }
+  }
+
+  const fmtInt = (n) => (n == null ? '–' : Number(n).toLocaleString('en-US'));
+  const fmtRune = (a) => (a ? `${(Number(a.amount) / 1e8).toLocaleString('en-US', { maximumFractionDigits: 2 })} ${a.denom === 'rune' ? 'RUNE' : esc(a.denom.toUpperCase())}` : '–');
+  const shortAddr = (a) => `${a.slice(0, 10)}…${a.slice(-6)}`;
+  function span(seconds) {
+    const m = Math.max(0, Math.round(seconds / 60));
+    if (m < 60) return `${m} min`;
+    const h = Math.floor(m / 60);
+    if (h < 48) return m % 60 ? `${h}h ${m % 60}m` : `${h}h`;
+    return `${Math.round(h / 24)} days`;
+  }
+  const NODE_STATE = { active: 'Active', standby: 'Standby', paused: 'Paused', unbonding: 'Leaving', removed: 'Removed' };
+
+  function stateChips(s) {
+    if (!s) return '';
+    const chips = [
+      s.emergencyExitOpen ? ['Emergency exit open', 'pill-down'] : s.alarm ? ['Alarm on', 'pill-down'] : ['No alarm', 'pill-up'],
+      s.depositsOpen && !s.paused ? ['Deposits open', 'pill-up'] : ['Deposits paused', 'pill-warn'],
+      s.newAccountsPaused ? ['New accounts paused', 'pill-warn'] : ['New accounts open', 'pill-up'],
+      ...(s.bunker ? [['Bunker mode', 'pill-warn']] : []),
+    ];
+    return `<div class="net-chips">${chips.map(([t, c]) => `<span class="pill ${c}">${t}</span>`).join('')}</div>`;
+  }
+
+  function nodeHtml(n, d) {
+    const h = n.health;
+    const [pc, pt] = !h ? ['pill-unknown', 'No endpoint'] : h.up ? ['pill-up', 'Up'] : ['pill-down', 'Down'];
+    const stats = [
+      ['Status', NODE_STATE[n.state] || n.state],
+      ['Bond', fmtRune(n.bond)],
+      ['Active since', n.activeSince ? `block ${fmtInt(n.activeSince)}` : null],
+      ['Last active', n.lastActiveHeight ? ago(Date.parse(d.time) - (d.height - n.lastActiveHeight) * BLOCK_SECONDS * 1000) : null],
+      ['Node height', h && h.height ? fmtInt(h.height) : null],
+    ]
+      .filter(([, v]) => v)
+      .map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`)
+      .join('');
+    return (
+      `<li class="svc"><div class="svc-head"><div class="svc-name"><h3>${esc(n.endpoint || shortAddr(n.operator))}</h3>` +
+      `<span class="net-op">${esc(shortAddr(n.operator))}</span></div><span class="pill ${pc}">${pt}</span></div>` +
+      `<dl class="stats">${stats}</dl></li>`
+    );
+  }
+
+  function renderNetwork(now) {
+    const d = net.data;
+    let html;
+    if (!d) {
+      html = `<div class="card"><p class="empty">${net.failed ? 'The network could not be read. This page tries again every minute.' : 'Loading the network.'}</p></div>`;
+    } else {
+      const nodes = d.nodes;
+      const c = d.churn;
+      const h = d.height + Math.max(0, Math.floor((now - Date.parse(d.time)) / (BLOCK_SECONDS * 1000)));
+      const left = c ? Math.max(0, c.nextHeight - h) : null;
+      const summary = [
+        ['Active nodes', nodes ? `${fmtInt(nodes.active)} of ${fmtInt(nodes.slots)}` : '–'],
+        ['Standby', nodes ? fmtInt(nodes.standby) : '–'],
+        ...(c ? [['Next churn', c.due || left === 0 ? 'Due now' : `in ${span(left * BLOCK_SECONDS)} · block ${fmtInt(c.nextHeight)}`]] : []),
+        ...(c && c.epoch != null ? [['Reward epoch', fmtInt(c.epoch)]] : []),
+        ['Chain block', fmtInt(d.height)],
+      ]
+        .map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`)
+        .join('');
+      const list = nodes && nodes.list.length ? nodes.list.map((n) => nodeHtml(n, d)).join('') : '<li class="svc svc-empty">No node is registered yet.</li>';
+      html =
+        `${stateChips(d.state)}` +
+        `<div class="card"><div class="svc"><dl class="stats net-summary">${summary}</dl></div></div>` +
+        `<ul class="card services">${list}</ul>` +
+        (net.failed ? `<p class="after-card">The last read failed, these figures are from block ${fmtInt(d.height)}. <a href="${NETWORK_URL}">redacted.gg/network</a></p>` : '');
+    }
+    if (last.network !== html) el.network.innerHTML = last.network = html;
   }
 
   /* ---------- data */
@@ -675,6 +766,7 @@
     renderBanner(list, openIncidents());
     renderIncidents(now);
     renderFoot(list);
+    renderNetwork(now);
     renderFresh();
   }
 
@@ -895,7 +987,7 @@
       if (state.signature && signature !== state.signature) inc.stale = true;
       state.signature = signature;
       render();
-      await loadIncidents();
+      await Promise.all([loadIncidents(), loadNetwork()]);
       render();
     } finally {
       busy = false;

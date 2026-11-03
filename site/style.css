@@ -963,3 +963,32 @@ h1 {
     transition: none;
   }
 }
+
+/* ---------- network */
+
+.block-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--blue);
+  text-decoration: none;
+}
+.block-link:hover {
+  text-decoration: underline;
+}
+.net-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.net-summary {
+  margin-top: 0;
+}
+.net-op {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--mute);
+}
+#network .card + .card {
+  margin-top: 12px;
+}

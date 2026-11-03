@@ -13,16 +13,17 @@ skipTopicsUpdate: true
 sites:
   - name: Redacted app
     slug: app
-    url: https://ruji.redacted.money
+    url: https://app.redacted.money
     type: globalping
     location: Europe
     maxResponseTime: 5000
+  # A node answers its health with "status":"ok" only while its chain view, its own state and its disk are fine.
   - name: Redacted node
     slug: node
-    url: https://ruji.redacted.money/private-api/v2/relayer
+    url: https://node1.redacted.money/private-api/hops/v1/health
     type: globalping
     location: Europe
-    __dangerous__body_down_if_text_missing: '"chain_id":"thorchain-1"'
+    __dangerous__body_down_if_text_missing: '"status":"ok"'
     maxResponseTime: 5000
   # Ozone answers its health with "ok":true only while its lists, its chain follower and its snapshot are current.
   - name: Ozone screening
@@ -62,7 +63,7 @@ status-website:
   name: Redacted Status
   theme: dark
   introTitle: "Redacted status"
-  introMessage: "Live status of the Redacted app, the Redacted node, Ozone screening and the public THORChain RPC and API. Each service is checked about every five minutes from GitHub, and the full history is public in this repository."
+  introMessage: "Live status of the Redacted app, the Redacted nodes, Ozone screening and the public THORChain RPC and API. Each service is checked about every five minutes from GitHub, and the full history is public in this repository."
   navbar:
     - title: Status
       href: /

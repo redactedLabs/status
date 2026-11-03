@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; connect-src https://raw.githubusercontent.com https://api.github.com; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; connect-src https://raw.githubusercontent.com https://api.github.com https://redacted.gg; base-uri 'none'; form-action 'none'">
   <meta name="referrer" content="no-referrer">
   <title>Redacted status</title>
   <meta name="description" content="Live status of the Redacted app, the Redacted node, Ozone screening and the public THORChain RPC and API.">
@@ -16,8 +16,8 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preload" href="fonts/figtree-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/jetbrains-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="style.css?v=5">
-  <script src="app.js?v=5" defer></script>
+  <link rel="stylesheet" href="style.css?v=6">
+  <script src="app.js?v=6" defer></script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to the status</a>
@@ -80,6 +80,17 @@
       <p class="after-card" id="services-warn"></p>
       <p class="sr-only" id="bar-help">Use the left and right arrow keys to read each day.</p>
       <p class="sr-only" id="bar-help-24">Use the left and right arrow keys to read each 15 minutes.</p>
+    </section>
+
+    <section class="block" aria-labelledby="network-title">
+      <div class="block-head">
+        <h2 id="network-title">Network</h2>
+        <a class="block-link" href="https://redacted.gg/network/">Full overview ↗</a>
+      </div>
+      <p class="block-note">The nodes and the churn, read from the chain.</p>
+      <div id="network">
+        <div class="card"><p class="empty">Loading the network.</p></div>
+      </div>
     </section>
 
     <section class="block" aria-labelledby="incidents-title">
