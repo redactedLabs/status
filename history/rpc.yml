@@ -1,7 +1,7 @@
 url: https://rpc.redacted.money/status
-status: down
+status: up
 code: 200
-responseTime: 53
-lastUpdated: 2026-11-03T09:59:45.227Z
+responseTime: 119
+lastUpdated: 2026-11-03T10:14:03.598Z
 startTime: 2026-10-07T21:36:43.321Z
 generator: Upptime <https://github.com/upptime/upptime>
