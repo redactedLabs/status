@@ -1,7 +1,7 @@
 url: https://node1.redacted.money/private-api/hops/v1/health
-status: down
+status: up
 code: 200
-responseTime: 433
-lastUpdated: 2026-11-04T03:57:16.323Z
+responseTime: 94
+lastUpdated: 2026-11-04T10:14:20.801Z
 startTime: 2026-10-07T22:26:12.869Z
 generator: Upptime <https://github.com/upptime/upptime>
