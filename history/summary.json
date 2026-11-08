@@ -25,17 +25,17 @@
     "url": "https://node1.redacted.money/private-api/hops/v1/health",
     "icon": "https://icons.duckduckgo.com/ip3/node1.redacted.money.ico",
     "slug": "node",
-    "status": "down",
-    "uptime": "89.13%",
-    "uptimeDay": "12.39%",
-    "uptimeWeek": "52.34%",
-    "uptimeMonth": "88.90%",
-    "uptimeYear": "89.13%",
-    "time": 161,
-    "timeDay": 58,
-    "timeWeek": 100,
-    "timeMonth": 144,
-    "timeYear": 161,
+    "status": "up",
+    "uptime": "89.07%",
+    "uptimeDay": "12.40%",
+    "uptimeWeek": "52.02%",
+    "uptimeMonth": "88.83%",
+    "uptimeYear": "89.07%",
+    "time": 159,
+    "timeDay": 59,
+    "timeWeek": 98,
+    "timeMonth": 142,
+    "timeYear": 159,
     "dailyMinutesDown": {
       "2026-10-17": 36,
       "2026-10-19": 22,
@@ -44,7 +44,7 @@
       "2026-11-07": 1261,
       "2026-11-06": 1440,
       "2026-11-05": 1440,
-      "2026-11-08": 5
+      "2026-11-08": 37
     }
   },
   {
