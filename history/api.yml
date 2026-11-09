@@ -1,7 +1,7 @@
 url: https://api.redacted.money/thorchain/lastblock
-status: up
+status: degraded
 code: 200
-responseTime: 53
-lastUpdated: 2026-11-08T23:06:47.570Z
+responseTime: 10037
+lastUpdated: 2026-11-09T14:57:08.277Z
 startTime: 2026-10-07T21:36:43.885Z
 generator: Upptime <https://github.com/upptime/upptime>
