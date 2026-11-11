@@ -26,11 +26,11 @@
     "icon": "https://icons.duckduckgo.com/ip3/node1.redacted.money.ico",
     "slug": "node",
     "status": "down",
-    "uptime": "85.06%",
+    "uptime": "85.05%",
     "uptimeDay": "47.40%",
-    "uptimeWeek": "30.77%",
-    "uptimeMonth": "83.04%",
-    "uptimeYear": "85.06%",
+    "uptimeWeek": "30.67%",
+    "uptimeMonth": "83.02%",
+    "uptimeYear": "85.05%",
     "time": 143,
     "timeDay": 85,
     "timeWeek": 84,
@@ -47,7 +47,7 @@
       "2026-11-08": 37,
       "2026-11-10": 1248,
       "2026-11-09": 1103,
-      "2026-11-11": 182
+      "2026-11-11": 192
     }
   },
   {
@@ -57,7 +57,7 @@
     "slug": "ozone",
     "status": "up",
     "uptime": "94.15%",
-    "uptimeDay": "87.25%",
+    "uptimeDay": "87.92%",
     "uptimeWeek": "90.26%",
     "uptimeMonth": "93.35%",
     "uptimeYear": "94.15%",
@@ -126,17 +126,17 @@
     "url": "https://api.redacted.money/thorchain/lastblock",
     "icon": "https://icons.duckduckgo.com/ip3/api.redacted.money.ico",
     "slug": "api",
-    "status": "down",
-    "uptime": "97.82%",
-    "uptimeDay": "98.31%",
-    "uptimeWeek": "99.60%",
-    "uptimeMonth": "97.52%",
-    "uptimeYear": "97.82%",
-    "time": 1042,
-    "timeDay": 3672,
-    "timeWeek": 2477,
-    "timeMonth": 1160,
-    "timeYear": 1042,
+    "status": "up",
+    "uptime": "97.80%",
+    "uptimeDay": "97.65%",
+    "uptimeWeek": "99.50%",
+    "uptimeMonth": "97.50%",
+    "uptimeYear": "97.80%",
+    "time": 1080,
+    "timeDay": 3587,
+    "timeWeek": 2526,
+    "timeMonth": 1204,
+    "timeYear": 1080,
     "dailyMinutesDown": {
       "2026-10-17": 31,
       "2026-10-19": 21,
@@ -145,7 +145,7 @@
       "2026-10-24": 99,
       "2026-11-09": 16,
       "2026-11-10": 9,
-      "2026-11-11": 15
+      "2026-11-11": 25
     }
   },
   {
